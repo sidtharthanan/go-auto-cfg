@@ -1,0 +1,5 @@
+package: github.com/sidtharthanan/go-auto-cfg
+import:
+- package: github.com/spf13/afero
+- package: gopkg.in/alecthomas/kingpin.v2
+- package: gopkg.in/yaml.v2

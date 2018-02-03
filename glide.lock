@@ -1,0 +1,23 @@
+hash: 84056d99abb8eddb48b090e32c42e67f1f57b39af5caaf997e04a430cc42bcc4
+updated: 2018-02-03T23:37:00.071403+05:30
+imports:
+- name: github.com/alecthomas/template
+  version: a0175ee3bccc567396460bf5acd36800cb10c49c
+  subpackages:
+  - parse
+- name: github.com/alecthomas/units
+  version: 2efee857e7cfd4f3d0138cc3cbb1b4966962b93a
+- name: github.com/spf13/afero
+  version: ec3a3111d1e1bdff38a61e09d5a5f5e974905611
+  subpackages:
+  - mem
+- name: golang.org/x/text
+  version: e19ae1496984b1c655b8044a65c0300a3c878dd3
+  subpackages:
+  - transform
+  - unicode/norm
+- name: gopkg.in/alecthomas/kingpin.v2
+  version: 947dcec5ba9c011838740e680966fd7087a71d0d
+- name: gopkg.in/yaml.v2
+  version: 7ad95dd0798a40da1ccdff6dff35fd177b5edf40
+testImports: []
