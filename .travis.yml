@@ -1,0 +1,19 @@
+language: go
+dist: precise
+go:
+  - 1.8.6
+  - 1.9.3
+  - tip
+os:
+  - linux
+  - osx
+matrix:
+  allow_failures:
+    - go: tip
+  fast_finish: true
+install:
+  - glide install
+script:
+  - go test ./...
+before_install:
+  - curl https://glide.sh/get | sh
