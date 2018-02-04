@@ -1,5 +1,5 @@
 # go-auto-cfg
-Access environmental variables as go-funcs generated from a schema file.
+Access environmental variables as go-funcs. It is a wrapper over viper. It takes a schema file as input and generates a go file with functions named after the env variables.
 
 [![Build Status](https://travis-ci.org/sidtharthanan/go-auto-cfg.svg?branch=master)](https://travis-ci.org/sidtharthanan/go-auto-cfg)
 
@@ -67,3 +67,5 @@ go run $GOPATH/src/github.com/sidtharthanan/go-auto-cfg/cfg.go parse schema.yml 
 ```
 The above command will parse `schema.yml` file and generates `config.auto.go` file.
 This file will be located at `configuration` directory under `config` package.
+
+To automate the code generation part, you could use `go generate` tool.
