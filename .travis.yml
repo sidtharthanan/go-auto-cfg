@@ -14,9 +14,9 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-      env: PLATFORM=dep-linux-amd64
+      env: PLATFORM="dep-linux-amd64"
     - os: osx
-      env: PLATFORM=dep-darwin-amd64
+      env: PLATFORM="dep-darwin-amd64"
 
 install:
   - dep ensure
