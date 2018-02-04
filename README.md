@@ -1,6 +1,8 @@
 # go-auto-cfg
 Access environmental variables as go-funcs generated from a schema file.
 
+[![Build Status](https://travis-ci.org/sidtharthanan/go-auto-cfg.svg?branch=master)](https://travis-ci.org/sidtharthanan/go-auto-cfg)
+
 Sample schema file:
 ```yaml
 APP_HOST: string
