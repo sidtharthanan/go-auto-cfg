@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/spf13/afero"
+	"io/ioutil"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -42,7 +42,6 @@ const getFunctionTpl = `func Get{{ .KEY }}() {{ .VAL_TYPE }} {
 `
 
 var (
-	fs                  = afero.NewOsFs()
 	parse               = kingpin.Command("parse", "Generate go config").Default()
 	inputSchemaFilepath = parse.Arg("schema-file", "Schema filepath").Required().ExistingFile()
 	packageName         = parse.Arg("package-name", "Set package name").Required().String()
@@ -58,13 +57,13 @@ func main() {
 }
 
 func getSchema(filename string) (map[string]string, error) {
-	file, err := afero.ReadFile(fs, filename)
+	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
 	schemaENV := make(map[string]string)
-	if err := yaml.Unmarshal(file, &schemaENV); err != nil {
+	if err := yaml.Unmarshal(content, &schemaENV); err != nil {
 		return nil, err
 	}
 	return schemaENV, nil
@@ -74,7 +73,7 @@ func getOutputWriter(outputDirPath string) (io.Writer, error) {
 	if outputDirPath == "" {
 		return os.Stdout, nil
 	}
-	file, err := fs.Create(outputDirPath + "/config.auto.go")
+	file, err := os.Create(outputDirPath + "/config.auto.go")
 	if err != nil {
 		return nil, err
 	}
