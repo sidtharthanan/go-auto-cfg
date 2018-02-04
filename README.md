@@ -2,7 +2,7 @@
 Access environmental variables as go-funcs generated from a schema file.
 
 Sample schema file:
-```
+```yaml
 APP_HOST: string
 APP_PORT: integer
 
@@ -18,7 +18,7 @@ OTHER_FEATURES: strings
 ```
 
 Sample config reader file generated:
-```
+```go
 ...
 func GetAPP_HOST() string { ... }
 func GetAPP_PORT() int { ... }
@@ -35,7 +35,7 @@ func GetOTHER_FEATURES() []string { ... }
 ```
 
 Sample configuration file:
-```
+```yaml
 APP_HOST: localhost
 APP_PORT: 8050
 
@@ -51,17 +51,17 @@ OTHER_FEATURES: OTP,SMS
 ```
 
 Now you could easily do:
-```
-  import "config"
-  ...
-  if config.GetAUTH_FEATURE_ON() { // false
-    middleware.authorize(user)
-  }
+```go
+ import "config"
+ ...
+ if config.GetAUTH_FEATURE_ON() { // false
+   middleware.authorize(user)
+ }
 ```
 
 Run the following command to generate the go config file:
-
-    go run $GOPATH/src/github.com/sidtharthanan/go-auto-cfg/cfg.go parse schema.yml config configuration
-    
+```bash
+go run $GOPATH/src/github.com/sidtharthanan/go-auto-cfg/cfg.go parse schema.yml config configuration
+```
 The above command will parse `schema.yml` file and generates `config.auto.go` file.
 This file will be located at `configuration` directory under `config` package.
