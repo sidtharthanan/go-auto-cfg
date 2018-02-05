@@ -7,12 +7,8 @@ Sample **schema.yml** file:
 ```yaml
 AUTH_FEATURE_ON: bool
 AUTH_TIMEOUT_IN_HOURS: float
-
 CLIENT_ID: integer
 CLIENT_PASS: string
-
-DB_URL: string
-LOG_LEVEL: string
 OTHER_FEATURES: strings
 ```
 
@@ -30,18 +26,19 @@ package cfg //package name is given as cli argument
 ...
 //name of the config file without extension.
 //paths for Viper to search for the config file in.
-func ReadInCfg(name string, paths ...string) { ... }
+func Load(name string, paths ...string) { ... }
 
-func GetAUTH_FEATURE_ON() bool { ... }
-func GetAUTH_TIMEOUT_IN_HOURS() float64 { ... }
+func AUTH_FEATURE_ON() bool { ... }
 
-func GetCLIENT_ID() int { ... }
-func GetCLIENT_PASS() string { ... }
+func AUTH_TIMEOUT_IN_HOURS() float64 { ... }
 
-func GetDB_URL() string { ... }
-func GetLOG_LEVEL() string { ... }
-func GetOTHER_FEATURES() []string { ... }
+func CLIENT_ID() int { ... }
+
+func CLIENT_PASS() string { ... }
+
+func OTHER_FEATURES() []string { ... }
 ```
+Functions are generated with `upper case name`s regardless of their case in `schema.yml`.
 
 Configuration file **variables.yml**:
 ```yaml
@@ -51,8 +48,6 @@ AUTH_TIMEOUT_IN_HOURS: 2.5
 CLIENT_ID: 20082
 CLIENT_PASS: qyUswmix82sw
 
-DB_URL: postgres://postgres:password@localhost:5432/db
-LOG_LEVEL: DEBUG
 OTHER_FEATURES: OTP,SMS
 ```
 
@@ -62,8 +57,8 @@ Use **config/config.auto.go** to load **variables.yml**:
  
  func main() {
    //load config file "variables.yml" from "." directory
-   cfg.ReadInCfg("variables", ".")
-   if cfg.GetAUTH_FEATURE_ON() {
+   cfg.Load("variables", ".")
+   if cfg.AUTH_FEATURE_ON() {
      middleware.authorize(user) // if the toggle is on use this feature
    }
  }
@@ -77,5 +72,21 @@ Generation of config file reader could be automated as follows:
 
  func main() {
    ...
+ }
+```
+
+Multiple instances of configuration can be loaded as follows:
+```go
+ import "cfg"
+ 
+ func main() {
+   cfg.Load("global", ".")
+
+   cfg1 := cfg.New()
+   cfg1.Load("module1", ".")
+   
+   cfg2 := cfg.New()
+   cfg2.Load("module2", ".")
+   
  }
 ```
