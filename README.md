@@ -6,7 +6,7 @@ Access environmental variables as go-funcs. It is a wrapper over viper. It takes
 Installation:
 ```bash
 go get -u github.com/sidtharthanan/go-auto-cfg
-\$GOPATH/bin/go-auto-cfg --help
+$GOPATH/bin/go-auto-cfg --help
 ```
 
 Sample **schema.yml** file:
@@ -21,7 +21,7 @@ OTHER_FEATURES: strings
 Run the following command to generate the go config file:
 ```bash
 #$GOPATH/bin/go-auto-cfg parse <schema-file> <package-name> <output-dir>
-\$GOPATH/bin/go-auto-cfg parse schema.yml cfg config
+$GOPATH/bin/go-auto-cfg parse schema.yml cfg config
 ```
 The above command will parse `schema.yml` file and generate `config.auto.go` file, located at `config` directory in `cfg` go package.
 
