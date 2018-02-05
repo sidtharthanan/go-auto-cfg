@@ -81,12 +81,20 @@ Multiple instances of configuration can be loaded as follows:
  
  func main() {
    cfg.Load("global", ".")
+   cfg.SOME_GLOBAL_CONFIG()
 
-   cfg1 := cfg.New()
-   cfg1.Load("module1", ".")
+   cfgA := cfg.New()
+   cfgA.Load("moduleA", ".")
+   cfgA.MODULE_A_SPECIFIC_CONFIG()
    
-   cfg2 := cfg.New()
-   cfg2.Load("module2", ".")
-   
+   cfgB := cfg.New()
+   cfgB.Load("moduleB", ".")
+   cfgB.MODULE_B_SPECIFIC_CONFIG()
+
  }
 ```
+
+FAQ:
+1. **Q:** Why functions`cfg.SOME_CONFIG()` not simple struct members`cfg.SOME_CONFIG`?
+
+   **A:** We want read only configuration and it is not possible to achieve without methods.
