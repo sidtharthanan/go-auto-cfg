@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/template"
 
+	_ "github.com/spf13/viper"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 )
