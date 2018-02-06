@@ -21,8 +21,8 @@ OTHER_FEATURES: strings
 
 Run the following command to generate the go config file:
 ```bash
-#go-auto-cfg parse <schema-file> <package-name> <output-dir>
-go-auto-cfg parse schema.yml cfg config
+#go-auto-cfg <schema-file> <package-name> [<output-dir>]
+go-auto-cfg schema.yml cfg config
 ```
 The above command will parse `schema.yml` file and generate `config.auto.go` file, located at `config` directory in `cfg` go package.
 
@@ -74,7 +74,7 @@ Use **config/config.auto.go** to load **variables.yml**:
 Generation of config file reader could be automated as follows:
 
 ```go
- //go:generate go-auto-cfg parse schema.yml cfg config
+ //go:generate go-auto-cfg schema.yml cfg config
  import "cfg"
 
  func main() {
