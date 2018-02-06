@@ -1,2 +1,4 @@
 .idea/
 vendor/
+test_*/
+!test_samples

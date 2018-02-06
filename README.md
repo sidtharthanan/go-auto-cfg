@@ -16,7 +16,7 @@ AUTH_FEATURE_ON: bool
 AUTH_TIMEOUT_IN_HOURS: float
 CLIENT_ID: integer
 CLIENT_PASS: string
-OTHER_FEATURES: strings
+ENVS: strings
 ```
 
 Run the following command to generate the go config file:
@@ -43,7 +43,7 @@ func CLIENT_ID() int { ... }
 
 func CLIENT_PASS() string { ... }
 
-func OTHER_FEATURES() []string { ... }
+func ENVS() []string { ... }
 ```
 Functions are generated with `upper case name`s regardless of their case in `schema.yml`.
 
@@ -55,7 +55,7 @@ AUTH_TIMEOUT_IN_HOURS: 2.5
 CLIENT_ID: 20082
 CLIENT_PASS: qyUswmix82sw
 
-OTHER_FEATURES: OTP,SMS
+ENVS: uat prod
 ```
 
 Use **config/config.auto.go** to load **variables.yml**:

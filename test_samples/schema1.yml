@@ -1,0 +1,5 @@
+POOL_SIZE: integer
+QUEUE_NAME: string
+WORKER_ON: bool
+SOME_CALC_FACTOR: float
+ENVS: strings

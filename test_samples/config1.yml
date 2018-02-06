@@ -1,0 +1,5 @@
+POOL_SIZE: 50
+QUEUE_NAME: busyqueue
+WORKER_ON: true
+SOME_CALC_FACTOR: 2.456
+ENVS: staging production

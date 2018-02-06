@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -64,7 +63,7 @@ func (cfg *AutoCfg) Load(name string, paths ...string) {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
 {{range $item := .Items}}
-	cfg._{{$item.Key}} = viper.{{$item.Function}}("{{$item.KEY}}")
+	cfg._{{$item.Key}} = v.{{$item.Function}}("{{$item.KEY}}")
 {{end}}
 }
 `
@@ -137,8 +136,8 @@ func getTplItems(schemaENV schema) ([]item, error) {
 			i.Type = "[]string"
 			i.Function = "GetStringSlice"
 		default:
-			return nil, errors.New(fmt.Sprintf("parsing error: Invalid type %s. "+
-				"Valid types: string integer bool float strings", envType))
+			return nil, fmt.Errorf("parsing error: Invalid type %s. "+
+				"Valid types: string integer bool float strings", envType)
 		}
 		items = append(items, i)
 	}
