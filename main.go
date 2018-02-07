@@ -92,19 +92,6 @@ func main() {
 	kingpin.FatalIfError(generate(*inputSchemaFilepath, *outputFilePath), "AutoCfg generation failed")
 }
 
-func getSchema(filename string) (schema, error) {
-	content, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	schemaENV := make(schema)
-	if err := yaml.Unmarshal(content, &schemaENV); err != nil {
-		return nil, err
-	}
-	return schemaENV, nil
-}
-
 func createPackage(outputFilePath string, packageName *string) error {
 	outputDirPath, filename := filepath.Split(outputFilePath)
 	*packageName = filepath.Base(outputDirPath)
@@ -161,13 +148,21 @@ func getTplItems(schemaENV schema) ([]item, error) {
 }
 
 func generate(filename string, outputFilePath string) error {
-	schemaENV, err := getSchema(filename)
+	content, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
 
 	outputWriter, err := getOutputWriter(outputFilePath)
 	if err != nil {
+		return err
+	}
+	return transpile(filename, content, packageName, outputWriter)
+}
+
+func transpile(sourceFile string, sourceContent []byte, targetPackage string, targetWriter io.Writer) error {
+	schemaENV := make(schema)
+	if err := yaml.Unmarshal(sourceContent, &schemaENV); err != nil {
 		return err
 	}
 
@@ -181,10 +176,10 @@ func generate(filename string, outputFilePath string) error {
 		return err
 	}
 
-	err = loaderTpl.Execute(outputWriter, &loader{
+	err = loaderTpl.Execute(targetWriter, &loader{
 		Items:   items,
-		Source:  filename,
-		Package: packageName,
+		Source:  sourceFile,
+		Package: targetPackage,
 	})
 	if err != nil {
 		return err
