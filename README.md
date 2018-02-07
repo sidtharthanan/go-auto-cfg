@@ -21,14 +21,14 @@ ENVS: strings
 
 Run the following command to generate the go config file:
 ```bash
-#go-auto-cfg <schema-file> <package-name> [<output-dir>]
-go-auto-cfg schema.yml cfg config
+#go-auto-cfg <schema-file> <output-file>
+go-auto-cfg schema.yml config/config.auto.go
 ```
-The above command will parse `schema.yml` file and generate `config.auto.go` file, located at `config` directory in `cfg` go package.
+The above command will parse `schema.yml` file and generate `config.auto.go` file, under `config` package.
 
 Generated **config/config.auto.go** file:
 ```go
-package cfg //package name is given as cli argument
+package config
 
 ...
 //name of the config file without extension.
@@ -60,7 +60,7 @@ ENVS: uat prod
 
 Use **config/config.auto.go** to load **variables.yml**:
 ```go
- import "cfg"
+ import cfg "config"
  
  func main() {
    //load config file "variables.yml" from "." directory
@@ -74,8 +74,8 @@ Use **config/config.auto.go** to load **variables.yml**:
 Generation of config file reader could be automated as follows:
 
 ```go
- //go:generate go-auto-cfg schema.yml cfg config
- import "cfg"
+ //go:generate go-auto-cfg schema.yml config/config.auto.go
+ import cfg "config"
 
  func main() {
    ...
@@ -84,7 +84,7 @@ Generation of config file reader could be automated as follows:
 
 Multiple instances of configuration can be loaded as follows:
 ```go
- import "cfg"
+ import cfg "config"
  
  func main() {
    cfg.Load("global", ".")

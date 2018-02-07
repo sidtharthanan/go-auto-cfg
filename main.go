@@ -8,6 +8,8 @@ import (
 	"strings"
 	"text/template"
 
+	"path/filepath"
+
 	_ "github.com/spf13/viper"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
@@ -79,15 +81,15 @@ type item struct {
 type schema map[string]string
 
 var (
-	inputSchemaFilepath = kingpin.Arg("schema-file", "Schema filepath.").Required().ExistingFile()
-	packageName         = kingpin.Arg("package-name", "Set package name.").Required().String()
-	outputDirPath       = kingpin.Arg("output-dir", "Output directory. "+
-		"If not mentioned, generated file is written to stdout.").ExistingDir()
+	inputSchemaFilepath = kingpin.Arg("schema-file", "Definitions of the configs read from here.").Required().ExistingFile()
+	outputFilePath      = kingpin.Arg("output-file", "Config loader go file is created here.").Required().String()
+	packageName         = ""
 )
 
 func main() {
 	kingpin.Parse()
-	kingpin.FatalIfError(generate(*inputSchemaFilepath, *outputDirPath), "AutoCfg generation failed")
+	kingpin.FatalIfError(createPackage(*outputFilePath, &packageName), "AutoCfg generation failed")
+	kingpin.FatalIfError(generate(*inputSchemaFilepath, *outputFilePath), "AutoCfg generation failed")
 }
 
 func getSchema(filename string) (schema, error) {
@@ -103,11 +105,29 @@ func getSchema(filename string) (schema, error) {
 	return schemaENV, nil
 }
 
-func getOutputWriter(outputDirPath string) (io.Writer, error) {
-	if outputDirPath == "" {
-		return os.Stdout, nil
+func createPackage(outputFilePath string, packageName *string) error {
+	outputDirPath, filename := filepath.Split(outputFilePath)
+	*packageName = filepath.Base(outputDirPath)
+	if filename == "" {
+		return fmt.Errorf("filename missing: %v", outputFilePath)
 	}
-	file, err := os.Create(outputDirPath + "/config.auto.go")
+	if *packageName == "." {
+		outputDirPath, _ = filepath.Abs(outputDirPath)
+		*packageName = filepath.Base(outputDirPath)
+	}
+
+	if _, err := os.Stat(outputDirPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(outputDirPath, 0755); err != nil {
+			return fmt.Errorf("not able to create/reuse package '%v' at '%v'\n%v", *packageName, outputDirPath, err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("not able to create/reuse package '%v' at '%v'\n%v", *packageName, outputDirPath, err)
+	}
+	return nil
+}
+
+func getOutputWriter(outputFilePath string) (io.Writer, error) {
+	file, err := os.Create(outputFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -122,20 +142,15 @@ func getTplItems(schemaENV schema) ([]item, error) {
 		i.Key = strings.ToLower(envKey)
 		switch envType {
 		case "string":
-			i.Type = "string"
-			i.Function = "GetString"
+			i.Type, i.Function = "string", "GetString"
 		case "integer":
-			i.Type = "int"
-			i.Function = "GetInt"
+			i.Type, i.Function = "int", "GetInt"
 		case "bool":
-			i.Type = "bool"
-			i.Function = "GetBool"
+			i.Type, i.Function = "bool", "GetBool"
 		case "float":
-			i.Type = "float64"
-			i.Function = "GetFloat64"
+			i.Type, i.Function = "float64", "GetFloat64"
 		case "strings":
-			i.Type = "[]string"
-			i.Function = "GetStringSlice"
+			i.Type, i.Function = "[]string", "GetStringSlice"
 		default:
 			return nil, fmt.Errorf("parsing error: Invalid type %s. "+
 				"Valid types: string integer bool float strings", envType)
@@ -145,13 +160,13 @@ func getTplItems(schemaENV schema) ([]item, error) {
 	return items, nil
 }
 
-func generate(filename string, outputDirPath string) error {
+func generate(filename string, outputFilePath string) error {
 	schemaENV, err := getSchema(filename)
 	if err != nil {
 		return err
 	}
 
-	outputWriter, err := getOutputWriter(outputDirPath)
+	outputWriter, err := getOutputWriter(outputFilePath)
 	if err != nil {
 		return err
 	}
@@ -169,7 +184,7 @@ func generate(filename string, outputDirPath string) error {
 	err = loaderTpl.Execute(outputWriter, &loader{
 		Items:   items,
 		Source:  filename,
-		Package: *packageName,
+		Package: packageName,
 	})
 	if err != nil {
 		return err
