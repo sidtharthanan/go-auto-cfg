@@ -101,6 +101,16 @@ Multiple instances of configuration can be loaded as follows:
  }
 ```
 
+Optional config:
+The following would default to 100, If not configured.
+```yaml
+AUTH_FEATURE_ON: integer,@optional(100)
+```
+The following would default to 0, golang zero value, If not configured.
+```yaml
+AUTH_FEATURE_ON: integer,@optional()
+```
+
 FAQ:
 1. **Q:** Why functions`cfg.SOME_CONFIG()` not simple struct members`cfg.SOME_CONFIG`?
 

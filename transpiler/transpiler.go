@@ -3,6 +3,7 @@ package transpiler
 import (
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/alecthomas/template"
@@ -18,6 +19,7 @@ package {{ .Package }}
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"github.com/spf13/cast"
 )
 
 type AutoCfg struct {
@@ -50,17 +52,22 @@ func Load(name string, paths ...string) {
 	cfg.Load(name, paths...)
 }
 func (cfg *AutoCfg) Load(name string, paths ...string) {
-	v := viper.New()
-	v.SetConfigName(name)
+	vpr := viper.New()
+	vpr.SetConfigName(name)
 	for _, path := range paths {
-		v.AddConfigPath(path)
+		vpr.AddConfigPath(path)
 	}
-	err := v.ReadInConfig()
+	err := vpr.ReadInConfig()
 	if err != nil {
 		panic(fmt.Errorf("Fatal error config file: %s \n", err))
 	}
-{{range $item := .Items}}
-	cfg._{{$item.Key}} = v.{{$item.Function}}("{{$item.KEY}}")
+{{range .Items}}
+	if v := vpr.Get("{{.KEY}}"); v != nil {
+		cfg._{{.Key}} = cast.{{.Function}}(v)
+	} else {
+		{{if .Optional}}cfg._{{.Key}} = cast.{{.Function}}("{{.Default}}") {{end}}
+		{{if eq .Optional false}}panic(fmt.Errorf("Required config missing: '{{.KEY}}'")) {{end}}
+	}
 {{end}}
 }
 `
@@ -70,10 +77,15 @@ type loader struct {
 	Source, Package string
 }
 type item struct {
+	Optional                 bool
+	Default                  string
 	KEY, Key, Type, Function string
 }
 
 type schema map[string]string
+
+var tokenRegex = regexp.MustCompile(`(?:(?:\\.)|(?:[^,]))*`)
+var modifierRegex = regexp.MustCompile(`@(\w+)\((.*)\)$`)
 
 func Transpile(sourceFile string, sourceContent []byte, targetPackage string, targetWriter io.Writer) error {
 	schemaENV := make(schema)
@@ -104,26 +116,53 @@ func Transpile(sourceFile string, sourceContent []byte, targetPackage string, ta
 
 func getTplItems(schemaENV schema) ([]item, error) {
 	items := make([]item, 0, len(schemaENV))
-	for envKey, envType := range schemaENV {
+	for envKey, modifiersS := range schemaENV {
 		var i item
 		i.KEY = strings.ToUpper(envKey)
 		i.Key = strings.ToLower(envKey)
-		switch envType {
-		case "string":
-			i.Type, i.Function = "string", "GetString"
-		case "integer":
-			i.Type, i.Function = "int", "GetInt"
-		case "bool":
-			i.Type, i.Function = "bool", "GetBool"
-		case "float":
-			i.Type, i.Function = "float64", "GetFloat64"
-		case "strings":
-			i.Type, i.Function = "[]string", "GetStringSlice"
-		default:
-			return nil, fmt.Errorf("parsing error: Invalid type %s. "+
-				"Valid types: string integer bool float strings", envType)
+
+		modifiers := tokenRegex.FindAllStringSubmatch(modifiersS, -1)
+		for _, modifier := range modifiers {
+			err := updateModifier(&i, modifier[0])
+			if err != nil {
+				return nil, err
+			}
 		}
+
 		items = append(items, i)
 	}
 	return items, nil
+}
+
+func updateModifier(i *item, token string) error {
+	switch token {
+	case "string":
+		i.Type, i.Function = "string", "ToString"
+	case "integer":
+		i.Type, i.Function = "int", "ToInt"
+	case "bool":
+		i.Type, i.Function = "bool", "ToBool"
+	case "float":
+		i.Type, i.Function = "float64", "ToFloat64"
+	case "strings":
+		i.Type, i.Function = "[]string", "ToStringSlice"
+	default:
+		if modifier := modifierRegex.FindStringSubmatch(token); modifier != nil {
+			switch modifier[1] {
+			case "optional":
+				i.Optional = true
+				i.Default = modifier[2]
+			default:
+				return invalidToken(token)
+			}
+		} else {
+			return invalidToken(token)
+		}
+	}
+	return nil
+}
+
+func invalidToken(token string) error {
+	return fmt.Errorf("parsing error: Invalid token '%s'. "+
+		"Valid tokens: string integer bool float strings @optional", token)
 }

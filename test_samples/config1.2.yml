@@ -1,1 +1,5 @@
 QUEUE_NAME: freequeue
+POOL_SIZE: 50
+WORKER_ON: true
+SOME_CALC_FACTOR: 2.456
+ENVS: staging production

@@ -1,0 +1,4 @@
+POOL_SIZE: integer,@optional(25)
+QUEUE_NAME: string
+APP_HOST: string,@optional(localhost)
+SIZE: integer,@optional()
