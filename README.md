@@ -102,6 +102,7 @@ Multiple instances of configuration can be loaded as follows:
 ```
 
 Optional config:
+
 The following would default to 100, If not configured.
 ```yaml
 AUTH_FEATURE_ON: integer,@optional(100)
