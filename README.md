@@ -111,6 +111,7 @@ The following would default to 0, golang zero value, If not configured.
 ```yaml
 AUTH_FEATURE_ON: integer,@optional()
 ```
+By default all variables are required. Can be made optional by adding the `@optional()` modifier.
 
 FAQ:
 1. **Q:** Why functions`cfg.SOME_CONFIG()` not simple struct members`cfg.SOME_CONFIG`?
