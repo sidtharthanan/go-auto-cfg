@@ -1,53 +1,70 @@
-# go-auto-cfg
-Access environmental variables as go-funcs. It is a wrapper over viper. It takes a schema file as input and generates a go file with functions named after the env variables.
+# go-auto-cfg&nbsp;&nbsp;&nbsp;&nbsp;[![Build Status](https://travis-ci.org/sidtharthanan/go-auto-cfg.svg?branch=master)](https://travis-ci.org/sidtharthanan/go-auto-cfg)
 
-[![Build Status](https://travis-ci.org/sidtharthanan/go-auto-cfg.svg?branch=master)](https://travis-ci.org/sidtharthanan/go-auto-cfg)
+go-auto-cfg provides a way to access environmental variables as go functions.
 
-Installation:
+go-auto-cfg is a wrapper over [viper](https://github.com/spf13/viper). It takes a schema file as input and generates a go file, the config loader, with functions named after the env variables.
+
+It is available as a CLI tool. Also, can be used with [go generate](https://blog.golang.org/generate) tool. [Go generate example](#use-go-generate).
+
+## Installation
 ```bash
 go get -u github.com/sidtharthanan/go-auto-cfg
 go-auto-cfg              --help  # depending on your PATH configuration use either of
 $GOPATH/bin/go-auto-cfg  --help  # these commands
 ```
+## Usage
+```bash
+go-auto-cfg <schema-file> <output-file>
+```
+### Example
+```
+go-auto-cfg schema.yml config/config.auto.go
+```
+The above command will parse `schema.yml` file and generate `config.auto.go` file under `config` package.
+## Schema file
+The schema is defined in a yaml file. It has to be in the following format.
+```yaml
+<ENV-variable-name>: <data-type>[,<constraint>]
+```
 
-Sample **schema.yml** file:
+### Schema example
+```yaml
+AUTH_FEATURE_ON: bool
+CLIENT_ID: string,@optional()
+CLIENT_PASS: string,@optional()
+POOL_SIZE: integer,@optional(5)
+ENVS: strings
+```
+
+### Data types
+| Type    | Description |
+|:--------|:------------|
+| integer | To int. |
+| float   | To float64. |
+| string  | To string. |
+| bool    | To bool. |
+| strings | To []string. Value is either a list of strings or space separated values. [example](#sample-schemayml-file)|
+
+### Constraints
+| Constraint    | Description |
+|:------------|:------------|
+| @optional() | Makes the variable optional. By default all variables are required. |
+| @optional(default-value)   | Makes the variable optional with a default value. |
+
+## Full example
+### Sample **schema.yml** file
 ```yaml
 AUTH_FEATURE_ON: bool
 AUTH_TIMEOUT_IN_HOURS: float
 CLIENT_ID: integer
 CLIENT_PASS: string
 ENVS: strings
+SOME_PREFIX: string,@optional(abc)
+SOME_SUFFIX: string,@optional()
+POOL_SIZE: integer,@optional(20)
 ```
 
-Run the following command to generate the go config file:
-```bash
-#go-auto-cfg <schema-file> <output-file>
-go-auto-cfg schema.yml config/config.auto.go
-```
-The above command will parse `schema.yml` file and generate `config.auto.go` file, under `config` package.
-
-Generated **config/config.auto.go** file:
-```go
-package config
-
-...
-//name of the config file without extension.
-//paths for Viper to search for the config file in.
-func Load(name string, paths ...string) { ... }
-
-func AUTH_FEATURE_ON() bool { ... }
-
-func AUTH_TIMEOUT_IN_HOURS() float64 { ... }
-
-func CLIENT_ID() int { ... }
-
-func CLIENT_PASS() string { ... }
-
-func ENVS() []string { ... }
-```
-Functions are generated with `upper case name`s regardless of their case in `schema.yml`.
-
-Configuration file **variables.yml**:
+### Configuration file **variables.yml**
 ```yaml
 AUTH_FEATURE_ON: false
 AUTH_TIMEOUT_IN_HOURS: 2.5
@@ -58,20 +75,29 @@ CLIENT_PASS: qyUswmix82sw
 ENVS: uat prod
 ```
 
-Use **config/config.auto.go** to load **variables.yml**:
+### Generate the go config loader file
+Alternatively this can be [automated](#use-go-generate).
+```bash
+go-auto-cfg schema.yml config/config.auto.go
+```
+
+### Use **config/config.auto.go** to load **variables.yml**
 ```go
  import cfg "config"
  
  func main() {
    //load config file "variables.yml" from "." directory
    cfg.Load("variables", ".")
-   if cfg.AUTH_FEATURE_ON() {
-     middleware.authorize(user) // if the toggle is on use this feature
+   if cfg.AUTH_FEATURE_ON() {  // false
+     middleware.authorize(user)
    }
+   poolSize := cfg.POOL_SIZE() // 20
+   prefix := cfg.SOME_PREFIX() // "abc"
+   suffix := cfg.SOME_SUFFIX() // ""
  }
 ```
 
-Generation of config file reader could be automated as follows:
+### Use go generate
 
 ```go
  //go:generate go-auto-cfg schema.yml config/config.auto.go
@@ -82,7 +108,7 @@ Generation of config file reader could be automated as follows:
  }
 ```
 
-Multiple instances of configuration can be loaded as follows:
+### Load multiple configs
 ```go
  import cfg "config"
  
@@ -101,19 +127,8 @@ Multiple instances of configuration can be loaded as follows:
  }
 ```
 
-Optional config:
+## FAQ
 
-The following would default to 100, If not configured.
-```yaml
-AUTH_FEATURE_ON: integer,@optional(100)
-```
-The following would default to 0, golang zero value, If not configured.
-```yaml
-AUTH_FEATURE_ON: integer,@optional()
-```
-By default all variables are required. Can be made optional by adding the `@optional()` modifier.
-
-FAQ:
 1. **Q:** Why functions`cfg.SOME_CONFIG()` not simple struct members`cfg.SOME_CONFIG`?
 
    **A:** We want read only configuration and it is not possible to achieve without methods.
